@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "USBConn6")(type "KiCad")(uri "${KIPRJMOD}/USBConn6.pretty")(options "")(descr ""))
+)

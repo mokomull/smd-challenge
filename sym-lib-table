@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "USBConn")(type "Legacy")(uri "${KIPRJMOD}/DX07S016JA1R1500/DX07S016JA1R1500.lib")(options "")(descr ""))
+)
