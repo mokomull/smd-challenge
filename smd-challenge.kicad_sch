@@ -2011,7 +2011,7 @@
     (property "Value" "Conn_01x05" (id 1) (at 69.85 172.0849 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical" (id 2) (at 67.31 170.18 0)
+    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical_SMD_Pin1Left" (id 2) (at 67.31 170.18 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 67.31 170.18 0)
@@ -2252,7 +2252,7 @@
       (reference "J1") (unit 1) (value "DX07S016JA1R1500") (footprint "USBConn6:JAE_DX07S016JA1R1500")
     )
     (path "/bb6c1a15-07b2-4907-aec4-0864d7813a85"
-      (reference "J2") (unit 1) (value "Conn_01x05") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical")
+      (reference "J2") (unit 1) (value "Conn_01x05") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical_SMD_Pin1Left")
     )
     (path "/c0814883-8958-4293-ade7-6a478ac7443e"
       (reference "R1") (unit 1) (value "5k1") (footprint "Resistor_SMD:R_0603_1608Metric")
