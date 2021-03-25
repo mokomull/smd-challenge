@@ -1424,6 +1424,12 @@
   )
 
   (gr_rect (start 120.015 37.846) (end 161.29 69.596) (layer "Edge.Cuts") (width 0.1) (fill none) (tstamp 9e3fd602-9092-473b-bb47-b7c322aee48b))
+  (gr_text "© 2021 Matt Mullins" (at 140.6525 67.818) (layer "B.SilkS") (tstamp 1a40b083-7ab7-4c04-aeea-18de68715dc9)
+    (effects (font (size 1.5 1.5) (thickness 0.3)) (justify mirror))
+  )
+  (gr_text "ATSAMD21E15B-M LED\ndemo board" (at 140.6525 53.721) (layer "B.SilkS") (tstamp dba90544-f8e7-4029-9bc4-df5698d313e0)
+    (effects (font (size 1.5 1.5) (thickness 0.3)) (justify mirror))
+  )
 
   (via (at 143.764 49.276) (size 0.8) (drill 0.4) (layers "F.Cu" "B.Cu") (free) (net 1) (tstamp 00313081-5039-4006-89cd-bd63fb1ac3a7))
   (via (at 123.952 54.864) (size 0.8) (drill 0.4) (layers "F.Cu" "B.Cu") (free) (net 1) (tstamp 125e2866-6c7e-4e37-a10d-6bde09b6ef35))
