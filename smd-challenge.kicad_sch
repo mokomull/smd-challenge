@@ -1916,7 +1916,7 @@
     (property "Reference" "C2" (id 0) (at 37.4651 68.58 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "12p" (id 1) (at 34.9251 68.58 0)
+    (property "Value" "28p" (id 1) (at 34.9251 68.58 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric" (id 2) (at 33.02 65.7352 0)
@@ -1938,7 +1938,7 @@
     (property "Reference" "C3" (id 0) (at 37.4651 88.9 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "12p" (id 1) (at 34.9251 88.9 0)
+    (property "Value" "28p" (id 1) (at 34.9251 88.9 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric" (id 2) (at 33.02 86.0552 0)
@@ -2070,7 +2070,7 @@
     (property "Reference" "Y1" (id 0) (at 53.34 73.0249 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "FA-238 16.0000MB-K3" (id 1) (at 53.34 75.5649 90)
+    (property "Value" " ECS-160-18-33QZ-ADS-TR" (id 1) (at 53.34 75.5649 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Footprint" "Crystal:Crystal_SMD_SeikoEpson_FA238-4Pin_3.2x2.5mm" (id 2) (at 46.99 73.66 0)
@@ -2259,10 +2259,10 @@
       (reference "C1") (unit 1) (value "10u") (footprint "Capacitor_SMD:C_1206_3216Metric")
     )
     (path "/6fd26f11-f126-405d-a547-5045b7a9c6e1"
-      (reference "C2") (unit 1) (value "12p") (footprint "Capacitor_SMD:C_0603_1608Metric")
+      (reference "C2") (unit 1) (value "28p") (footprint "Capacitor_SMD:C_0603_1608Metric")
     )
     (path "/8b358330-234f-4b1c-9989-6037fd57d4c0"
-      (reference "C3") (unit 1) (value "12p") (footprint "Capacitor_SMD:C_0603_1608Metric")
+      (reference "C3") (unit 1) (value "28p") (footprint "Capacitor_SMD:C_0603_1608Metric")
     )
     (path "/9b0d978d-5b6e-428d-b6f0-df8ac7dbe5a8"
       (reference "C4") (unit 1) (value "10u") (footprint "Capacitor_SMD:C_1206_3216Metric")
@@ -2331,7 +2331,7 @@
       (reference "U2") (unit 1) (value "ATSAMD21E15B-M") (footprint "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.6x3.6mm")
     )
     (path "/ed4d4007-899f-48cd-9839-2ec406105b44"
-      (reference "Y1") (unit 1) (value "FA-238 16.0000MB-K3") (footprint "Crystal:Crystal_SMD_SeikoEpson_FA238-4Pin_3.2x2.5mm")
+      (reference "Y1") (unit 1) (value " ECS-160-18-33QZ-ADS-TR") (footprint "Crystal:Crystal_SMD_SeikoEpson_FA238-4Pin_3.2x2.5mm")
     )
   )
 )
