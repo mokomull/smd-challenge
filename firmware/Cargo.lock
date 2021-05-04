@@ -236,6 +236,7 @@ dependencies = [
  "atsamd-hal",
  "cortex-m 0.7.2",
  "cortex-m-rt",
+ "embedded-hal",
  "panic-halt",
 ]
 

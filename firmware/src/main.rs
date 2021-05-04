@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+use core::convert::Infallible;
+
 use panic_halt as _;
 
 use atsamd_hal::prelude::*;
@@ -24,11 +26,24 @@ fn main() -> ! {
     let pins = atsamd_hal::gpio::v2::Pins::new(peripherals.PORT);
 
     let mut red = pins.pa00.into_push_pull_output();
+    let mut orange = pins.pa01.into_push_pull_output();
+    let mut yellow = pins.pa02.into_push_pull_output();
+    let mut green = pins.pa03.into_push_pull_output();
+    let mut blue = pins.pa04.into_push_pull_output();
+
+    let pins: &mut [&mut dyn embedded_hal::digital::v2::OutputPin<Error = Infallible>] =
+        &mut [&mut red, &mut orange, &mut yellow, &mut green, &mut blue];
+
+    for pin in pins.iter_mut() {
+        pin.set_high().unwrap();
+    }
 
     loop {
-        red.set_low().unwrap();
-        delay.delay_ms(500u16);
-        red.set_high().unwrap();
-        delay.delay_ms(500u16);
+        for pin in pins.iter_mut() {
+            pin.set_low().unwrap();
+            delay.delay_ms(100u16);
+            pin.set_high().unwrap();
+            delay.delay_ms(100u16);
+        }
     }
 }
