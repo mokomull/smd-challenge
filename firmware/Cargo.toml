@@ -1,0 +1,20 @@
+[package]
+name = "smd-challenge"
+version = "0.1.0"
+authors = ["Matt Mullins <mmullins@mmlx.us>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cortex-m = "0.7.2"
+cortex-m-rt = "0.6.13"
+panic-halt = "0.2.0"
+
+[dependencies.atsamd-hal]
+version = "0.12.0"
+features = [ "samd21e" ]
+
+[profile.release]
+opt-level = "s"
+debug = true
