@@ -8,6 +8,8 @@ fn main() -> ! {
     let mut peripherals = atsamd_hal::target_device::Peripherals::take().unwrap();
     let core_peripherals = atsamd_hal::target_device::CorePeripherals::take().unwrap();
 
+    // SYSCTRL.OSC8M defaults to a /8 prescaler, but the implementation of this function sets that
+    // prescale factor to /1.
     let mut generic_clock_controller =
         atsamd_hal::clock::GenericClockController::with_internal_8mhz(
             peripherals.GCLK,
@@ -25,7 +27,7 @@ fn main() -> ! {
     });
     while peripherals.SYSCTRL.pclksr.read().xoscrdy().bit_is_clear() {}
 
-    // Arbitrarily choosing Clock Generator 6 to wire 48MHz to TCC2
+    // Arbitrarily choosing Clock Generator 6 to wire 8MHz to TCC2
     unsafe {
         let gclk = &*atsamd21e::GCLK::ptr();
         gclk.gendiv.write(|w| {
@@ -39,7 +41,7 @@ fn main() -> ! {
             w.oe().clear_bit();
             w.idc().clear_bit();
             w.genen().set_bit();
-            w.src().dfll48m();
+            w.src().osc8m();
             w.id().bits(6);
             w
         });
@@ -61,11 +63,11 @@ fn main() -> ! {
         w
     });
     peripherals.TCC2.per().write(|w| {
-        unsafe { w.per().bits(48_000 - 1) }; // 48MHz / 48_000 = 1kHz.
+        unsafe { w.per().bits(8_000 - 1) }; // 8MHz / 8_000 = 1kHz.
         w
     });
     peripherals.TCC2.cc()[0].write(|w| {
-        unsafe { w.cc().bits(24_000) }; // half duty cycle
+        unsafe { w.cc().bits(4_000) }; // half duty cycle
         w
     });
     peripherals.TCC2.ctrla.write(|w| {
