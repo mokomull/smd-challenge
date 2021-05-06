@@ -20,6 +20,15 @@ fn main() -> ! {
             &mut peripherals.NVMCTRL,
         );
 
+    peripherals.SYSCTRL.xosc.modify(|_r, w| {
+        w.xtalen().set_bit();
+        w.gain()._3();
+        w.ondemand().clear_bit();
+        w.enable().set_bit();
+        w
+    });
+    while peripherals.SYSCTRL.pclksr.read().xoscrdy().bit_is_clear() {}
+
     let mut delay =
         atsamd_hal::delay::Delay::new(core_peripherals.SYST, &mut generic_clock_controller);
 
