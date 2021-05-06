@@ -234,6 +234,7 @@ name = "smd-challenge"
 version = "0.1.0"
 dependencies = [
  "atsamd-hal",
+ "atsamd21e",
  "cortex-m 0.7.2",
  "cortex-m-rt",
  "embedded-hal",

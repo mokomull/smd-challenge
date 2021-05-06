@@ -1,11 +1,7 @@
 #![no_std]
 #![no_main]
 
-use core::convert::Infallible;
-
 use panic_halt as _;
-
-use atsamd_hal::prelude::*;
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -29,30 +25,60 @@ fn main() -> ! {
     });
     while peripherals.SYSCTRL.pclksr.read().xoscrdy().bit_is_clear() {}
 
-    let mut delay =
-        atsamd_hal::delay::Delay::new(core_peripherals.SYST, &mut generic_clock_controller);
-
-    let pins = atsamd_hal::gpio::v2::Pins::new(peripherals.PORT);
-
-    let mut red = pins.pa00.into_push_pull_output();
-    let mut orange = pins.pa01.into_push_pull_output();
-    let mut yellow = pins.pa02.into_push_pull_output();
-    let mut green = pins.pa03.into_push_pull_output();
-    let mut blue = pins.pa04.into_push_pull_output();
-
-    let pins: &mut [&mut dyn embedded_hal::digital::v2::OutputPin<Error = Infallible>] =
-        &mut [&mut red, &mut orange, &mut yellow, &mut green, &mut blue];
-
-    for pin in pins.iter_mut() {
-        pin.set_high().unwrap();
+    // Arbitrarily choosing Clock Generator 6 to wire 48MHz to TCC2
+    unsafe {
+        let gclk = &*atsamd21e::GCLK::ptr();
+        gclk.gendiv.write(|w| {
+            w.div().bits(1);
+            w.id().bits(6);
+            w
+        });
+        gclk.genctrl.write(|w| {
+            w.runstdby().clear_bit();
+            w.divsel().clear_bit();
+            w.oe().clear_bit();
+            w.idc().clear_bit();
+            w.genen().set_bit();
+            w.src().dfll48m();
+            w.id().bits(6);
+            w
+        });
+        gclk.clkctrl.write(|w| {
+            w.clken().set_bit();
+            w.gen().gclk6();
+            w.id().tcc2_tc3();
+            w
+        });
     }
 
+    // enable the TCC2 peripheral
+    peripherals.PM.apbcmask.modify(|_r, w| w.tcc2_().set_bit());
+
+    // set up TCC2/WO[0] (i.e. PA00) for 50% duty cycle at 1kHz
+    peripherals.TCC2.wave.write(|w| {
+        w.pol0().clear_bit();
+        w.wavegen().npwm();
+        w
+    });
+    peripherals.TCC2.per().write(|w| {
+        unsafe { w.per().bits(48_000 - 1) }; // 48MHz / 48_000 = 1kHz.
+        w
+    });
+    peripherals.TCC2.cc()[0].write(|w| {
+        unsafe { w.cc().bits(24_000) }; // half duty cycle
+        w
+    });
+    peripherals.TCC2.ctrla.write(|w| {
+        w.prescaler().div1();
+        w.resolution().none();
+        w.enable().set_bit();
+        w
+    });
+
+    let pins = atsamd_hal::gpio::v2::Pins::new(peripherals.PORT);
+    let _red = pins.pa00.into_alternate::<atsamd_hal::gpio::v2::pin::E>();
+
     loop {
-        for pin in pins.iter_mut() {
-            pin.set_low().unwrap();
-            delay.delay_ms(100u16);
-            pin.set_high().unwrap();
-            delay.delay_ms(100u16);
-        }
+        cortex_m::asm::wfi();
     }
 }
