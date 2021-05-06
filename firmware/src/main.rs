@@ -3,6 +3,10 @@
 
 use panic_halt as _;
 
+use atsamd_hal::gpio::IntoFunction;
+use atsamd_hal::prelude::*;
+use usb_device::prelude::*;
+
 #[cortex_m_rt::entry]
 fn main() -> ! {
     let mut peripherals = atsamd_hal::target_device::Peripherals::take().unwrap();
@@ -78,6 +82,14 @@ fn main() -> ! {
             w.id().tcc2_tc3();
             w
         });
+
+        // and route it to the USB device as well.  USB requires *exactly* 48MHz.
+        gclk.clkctrl.write(|w| {
+            w.clken().set_bit();
+            w.gen().gclk6();
+            w.id().usb();
+            w
+        });
     }
 
     // enable the TCC2 peripheral
@@ -104,10 +116,24 @@ fn main() -> ! {
         w
     });
 
-    let pins = atsamd_hal::gpio::v2::Pins::new(peripherals.PORT);
-    let _red = pins.pa00.into_alternate::<atsamd_hal::gpio::v2::pin::E>();
+    let mut pins = peripherals.PORT.split();
+    let _red = pins.pa0.into_function_e(&mut pins.port);
+
+    let usb_bus = atsamd_hal::samd21::usb::UsbBus::new(
+        unsafe { &*core::ptr::null() },
+        &mut peripherals.PM,
+        pins.pa24.into_function(&mut pins.port),
+        pins.pa25.into_function(&mut pins.port),
+        peripherals.USB,
+    );
+    let usb_allocator = usb_device::bus::UsbBusAllocator::new(usb_bus);
+
+    let mut usb_device = UsbDeviceBuilder::new(&usb_allocator, UsbVidPid(0x1337, 0x4209))
+        .manufacturer("Matt Mullins")
+        .product("smd-challenge")
+        .build();
 
     loop {
-        cortex_m::asm::wfi();
+        usb_device.poll(&mut []);
     }
 }
