@@ -31,7 +31,7 @@ fn main() -> ! {
     unsafe {
         let gclk = &*atsamd21e::GCLK::ptr();
         gclk.gendiv.write(|w| {
-            w.div().bits(1);
+            w.div().bits(2);
             w.id().bits(6);
             w
         });
@@ -41,7 +41,7 @@ fn main() -> ! {
             w.oe().clear_bit();
             w.idc().clear_bit();
             w.genen().set_bit();
-            w.src().osc8m();
+            w.src().xosc();
             w.id().bits(6);
             w
         });
