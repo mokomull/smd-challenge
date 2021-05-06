@@ -58,7 +58,7 @@ fn main() -> ! {
 
     // set up TCC2/WO[0] (i.e. PA00) for 50% duty cycle at 1kHz
     peripherals.TCC2.wave.write(|w| {
-        w.pol0().clear_bit();
+        w.pol0().set_bit();
         w.wavegen().npwm();
         w
     });
@@ -67,7 +67,7 @@ fn main() -> ! {
         w
     });
     peripherals.TCC2.cc()[0].write(|w| {
-        unsafe { w.cc().bits(4_000) }; // half duty cycle
+        unsafe { w.cc().bits(2_000) };
         w
     });
     peripherals.TCC2.ctrla.write(|w| {
