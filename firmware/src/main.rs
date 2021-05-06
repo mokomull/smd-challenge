@@ -27,11 +27,38 @@ fn main() -> ! {
     });
     while peripherals.SYSCTRL.pclksr.read().xoscrdy().bit_is_clear() {}
 
-    // Arbitrarily choosing Clock Generator 6 to wire 8MHz to TCC2
+    // Set up FDPLL96M to output 48MHz
+    // That is, 16MHz (XOSC) / 8 => 2MHz (fdpll96m_ref) * 24 => 48MHz
+    peripherals.SYSCTRL.dpllratio.write(|w| unsafe {
+        w.ldr().bits(24 - 1);
+        w.ldrfrac().bits(0);
+        w
+    });
+    peripherals.SYSCTRL.dpllctrlb.write(|w| {
+        unsafe {
+            w.div().bits(3); // F_fdpll96m_ref = F_xosc * (1 / (2 * (DIV + 1))) according to datasheet.
+            w.refclk().ref1();
+            w
+        }
+    });
+    peripherals.SYSCTRL.dpllctrla.write(|w| {
+        w.ondemand().clear_bit();
+        w.enable().set_bit();
+        w
+    });
+    while peripherals
+        .SYSCTRL
+        .dpllstatus
+        .read()
+        .clkrdy()
+        .bit_is_clear()
+    {}
+
+    // Arbitrarily choosing Clock Generator 6 to wire 48MHz to TCC2
     unsafe {
         let gclk = &*atsamd21e::GCLK::ptr();
         gclk.gendiv.write(|w| {
-            w.div().bits(2);
+            w.div().bits(1);
             w.id().bits(6);
             w
         });
@@ -41,7 +68,7 @@ fn main() -> ! {
             w.oe().clear_bit();
             w.idc().clear_bit();
             w.genen().set_bit();
-            w.src().xosc();
+            w.src().dpll96m();
             w.id().bits(6);
             w
         });
@@ -63,7 +90,7 @@ fn main() -> ! {
         w
     });
     peripherals.TCC2.per().write(|w| {
-        unsafe { w.per().bits(8_000 - 1) }; // 8MHz / 8_000 = 1kHz.
+        unsafe { w.per().bits(48_000 - 1) }; // 48MHz / 48_000 = 1kHz.
         w
     });
     peripherals.TCC2.cc()[0].write(|w| {
