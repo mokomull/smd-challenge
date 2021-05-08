@@ -9,8 +9,10 @@ use usb_device::prelude::*;
 use usbd_hid::descriptor::generator_prelude::*;
 
 #[gen_hid_descriptor(
-    (collection = APPLICATION, usage_page = 0x08, usage = 0x01) = {
-        #[packed_bits 1] led = output;
+    (collection = APPLICATION, usage_page = 0x01 , usage = 0x06) = {
+        (usage_page = 0x08, usage = 0x01) = {
+            #[packed_bits 1] led = output;
+        }
     }
 )]
 struct Led {
