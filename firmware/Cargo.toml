@@ -13,6 +13,7 @@ cortex-m-rt = "0.6.13"
 embedded-hal = "0.2.5"
 panic-halt = "0.2.0"
 usb-device = "0.2.8"
+usbd-hid = "0.5.0"
 
 [dependencies.atsamd-hal]
 version = "0.12.0"

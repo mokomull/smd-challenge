@@ -6,6 +6,16 @@ use panic_halt as _;
 use atsamd_hal::gpio::IntoFunction;
 use atsamd_hal::prelude::*;
 use usb_device::prelude::*;
+use usbd_hid::descriptor::generator_prelude::*;
+
+#[gen_hid_descriptor(
+    (collection = APPLICATION, usage_page = 0x08, usage = 0x01) = {
+        #[packed_bits 1] led = output;
+    }
+)]
+struct Led {
+    led: u8,
+}
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -106,7 +116,7 @@ fn main() -> ! {
         w
     });
     peripherals.TCC2.cc()[0].write(|w| {
-        unsafe { w.cc().bits(2_000) };
+        unsafe { w.cc().bits(0) };
         w
     });
     peripherals.TCC2.ctrla.write(|w| {
@@ -128,12 +138,32 @@ fn main() -> ! {
     );
     let usb_allocator = usb_device::bus::UsbBusAllocator::new(usb_bus);
 
+    let mut usb_hid = usbd_hid::hid_class::HIDClass::new(&usb_allocator, Led::desc(), 10);
+
     let mut usb_device = UsbDeviceBuilder::new(&usb_allocator, UsbVidPid(0x1337, 0x4209))
         .manufacturer("Matt Mullins")
         .product("smd-challenge")
         .build();
 
     loop {
-        usb_device.poll(&mut []);
+        if usb_device.poll(&mut [&mut usb_hid]) {
+            let mut buf = [0];
+            match usb_hid.pull_raw_output(&mut buf) {
+                Ok(1) => {
+                    if buf[0] == 0 {
+                        peripherals.TCC2.cc()[0].write(|w| {
+                            unsafe { w.cc().bits(0) };
+                            w
+                        });
+                    } else {
+                        peripherals.TCC2.cc()[0].write(|w| {
+                            unsafe { w.cc().bits(2_000) };
+                            w
+                        });
+                    }
+                }
+                _ => (),
+            }
+        }
     }
 }
