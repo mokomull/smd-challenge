@@ -134,6 +134,7 @@ fn main() -> ! {
     // set up TCC2/WO[0] (i.e. PA00) for 50% duty cycle at 1kHz
     peripherals.TCC2.wave.write(|w| {
         w.pol0().set_bit();
+        w.pol1().set_bit();
         w.wavegen().npwm();
         w
     });
@@ -145,6 +146,7 @@ fn main() -> ! {
         unsafe { w.cc().bits(0) };
         w
     });
+    peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(0) });
     peripherals.TCC2.ctrla.write(|w| {
         w.prescaler().div1();
         w.resolution().none();
@@ -154,6 +156,7 @@ fn main() -> ! {
 
     let mut pins = peripherals.PORT.split();
     let _red = pins.pa0.into_function_e(&mut pins.port);
+    let _orange = pins.pa1.into_function_e(&mut pins.port);
 
     let usb_bus = atsamd_hal::samd21::usb::UsbBus::new(
         unsafe { &*core::ptr::null() },
@@ -176,7 +179,8 @@ fn main() -> ! {
             let mut buf = [0];
             match usb_hid.pull_raw_output(&mut buf) {
                 Ok(1) => {
-                    if buf[0] == 0 {
+                    // red
+                    if buf[0] & 0x1 == 0 {
                         peripherals.TCC2.cc()[0].write(|w| {
                             unsafe { w.cc().bits(0) };
                             w
@@ -186,6 +190,13 @@ fn main() -> ! {
                             unsafe { w.cc().bits(2_000) };
                             w
                         });
+                    }
+
+                    // orange
+                    if buf[0] & 0x2 == 0 {
+                        peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(0) });
+                    } else {
+                        peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(2_000) });
                     }
                 }
                 _ => (),
