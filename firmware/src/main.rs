@@ -94,7 +94,8 @@ fn main() -> ! {
         .bit_is_clear()
     {}
 
-    // Arbitrarily choosing Clock Generator 6 to wire 48MHz to TCC2 and TCC3
+    // Arbitrarily choosing Clock Generator 6 to wire 48MHz to the USB peripheral.  USB requires
+    // *exactly* 48MHz.
     unsafe {
         let gclk = &*atsamd21e::GCLK::ptr();
         gclk.gendiv.write(|w| {
@@ -115,48 +116,16 @@ fn main() -> ! {
         gclk.clkctrl.write(|w| {
             w.clken().set_bit();
             w.gen().gclk6();
-            w.id().tcc2_tc3();
-            w
-        });
-
-        // and route it to the USB device as well.  USB requires *exactly* 48MHz.
-        gclk.clkctrl.write(|w| {
-            w.clken().set_bit();
-            w.gen().gclk6();
             w.id().usb();
             w
         });
     }
 
-    // enable the TCC2 peripheral
-    peripherals.PM.apbcmask.modify(|_r, w| w.tcc2_().set_bit());
-
-    // set up TCC2/WO[0] (i.e. PA00) for 50% duty cycle at 1kHz
-    peripherals.TCC2.wave.write(|w| {
-        w.pol0().set_bit();
-        w.pol1().set_bit();
-        w.wavegen().npwm();
-        w
-    });
-    peripherals.TCC2.per().write(|w| {
-        unsafe { w.per().bits(48_000 - 1) }; // 48MHz / 48_000 = 1kHz.
-        w
-    });
-    peripherals.TCC2.cc()[0].write(|w| {
-        unsafe { w.cc().bits(0) };
-        w
-    });
-    peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(0) });
-    peripherals.TCC2.ctrla.write(|w| {
-        w.prescaler().div1();
-        w.resolution().none();
-        w.enable().set_bit();
-        w
-    });
-
     let mut pins = peripherals.PORT.split();
-    let _red = pins.pa0.into_function_e(&mut pins.port);
-    let _orange = pins.pa1.into_function_e(&mut pins.port);
+    let mut red = pins.pa0.into_push_pull_output(&mut pins.port);
+    red.set_high().unwrap();
+    let mut orange = pins.pa1.into_push_pull_output(&mut pins.port);
+    orange.set_high().unwrap();
     let mut yellow = pins.pa2.into_push_pull_output(&mut pins.port);
     yellow.set_high().unwrap();
     let mut green = pins.pa3.into_push_pull_output(&mut pins.port);
@@ -187,27 +156,21 @@ fn main() -> ! {
                 Ok(1) => {
                     // red
                     if buf[0] & 0x1 == 0 {
-                        peripherals.TCC2.cc()[0].write(|w| {
-                            unsafe { w.cc().bits(0) };
-                            w
-                        });
+                        // remember: we're switching GND for the LEDs, so inverted logic
+                        red.set_high().unwrap();
                     } else {
-                        peripherals.TCC2.cc()[0].write(|w| {
-                            unsafe { w.cc().bits(2_000) };
-                            w
-                        });
+                        red.set_low().unwrap();
                     }
 
                     // orange
                     if buf[0] & 0x2 == 0 {
-                        peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(0) });
+                        orange.set_high().unwrap();
                     } else {
-                        peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(2_000) });
+                        orange.set_low().unwrap();
                     }
 
                     // yellow
                     if buf[0] & 0x4 == 0 {
-                        // remember: we're switching GND for the LEDs, so inverted logic
                         yellow.set_high().unwrap();
                     } else {
                         yellow.set_low().unwrap();
