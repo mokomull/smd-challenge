@@ -15,16 +15,26 @@ static HID_DESCRIPTOR: &[u8] = &[
     0b0000_10_01, 0x06,
     // Collection - Application
     0b1010_00_01, 0x01,
-    //     Usage Page - LEDs
-    0b0000_01_01, 0x08,
-    //     Usage - Generic Indicator
-    0b0000_10_01, 0x4b,
+
     //     Report Count - 5
     0b1001_01_01, 5,
     //     Report Size - 1
     0b0111_01_01, 1,
+    //     Usage Page - LEDs
+    0b0000_01_01, 0x08,
+    //     Usage - Compose
+    0b0000_10_01, 0x04,
+    //     Usage - Kana
+    0b0000_10_01, 0x05,
+    //     Usage - Stand-by ("sleep" to Linux)
+    0b0000_10_01, 0x27,
+    //     Usage - System Suspend ("suspend" to Linux)
+    0b0000_10_01, 0x4c,
+    //     Usage - Message Waiting ("mail" to Linux)
+    0b0000_10_01, 0x19,
     //     Output (Data, Variable, Absolute)
     0b1001_00_01, 0b0000_0010,
+
     //     Report Count - 3
     0b1001_01_01, 3,
     //     Output (Constant, Variable, Absolute)
