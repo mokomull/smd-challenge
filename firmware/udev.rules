@@ -1,0 +1,5 @@
+ACTION=="add", SUBSYSTEM=="leds", ATTRS{idVendor}=="1337", ATTRS{idProduct}=="4209", KERNEL=="*::compose", ATTR{trigger}="heartbeat"
+ACTION=="add", SUBSYSTEM=="leds", ATTRS{idVendor}=="1337", ATTRS{idProduct}=="4209", KERNEL=="*::kana", ATTR{trigger}="netdev", ATTR{device_name}="p1p1", ATTR{link}="1"
+ACTION=="add", SUBSYSTEM=="leds", ATTRS{idVendor}=="1337", ATTRS{idProduct}=="4209", KERNEL=="*::sleep", ATTR{trigger}="netdev", ATTR{device_name}="p1p1", ATTR{tx}="1"
+ACTION=="add", SUBSYSTEM=="leds", ATTRS{idVendor}=="1337", ATTRS{idProduct}=="4209", KERNEL=="*::suspend", ATTR{trigger}="netdev", ATTR{device_name}="p1p1", ATTR{rx}="1"
+ACTION=="add", SUBSYSTEM=="leds", ATTRS{idVendor}=="1337", ATTRS{idProduct}=="4209", KERNEL=="*::mail", ATTR{trigger}="disk-activity"
