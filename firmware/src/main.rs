@@ -94,7 +94,7 @@ fn main() -> ! {
         .bit_is_clear()
     {}
 
-    // Arbitrarily choosing Clock Generator 6 to wire 48MHz to TCC2
+    // Arbitrarily choosing Clock Generator 6 to wire 48MHz to TCC2 and TCC3
     unsafe {
         let gclk = &*atsamd21e::GCLK::ptr();
         gclk.gendiv.write(|w| {
@@ -157,6 +157,12 @@ fn main() -> ! {
     let mut pins = peripherals.PORT.split();
     let _red = pins.pa0.into_function_e(&mut pins.port);
     let _orange = pins.pa1.into_function_e(&mut pins.port);
+    let mut yellow = pins.pa2.into_push_pull_output(&mut pins.port);
+    yellow.set_high().unwrap();
+    let mut green = pins.pa3.into_push_pull_output(&mut pins.port);
+    green.set_high().unwrap();
+    let mut blue = pins.pa4.into_push_pull_output(&mut pins.port);
+    blue.set_high().unwrap();
 
     let usb_bus = atsamd_hal::samd21::usb::UsbBus::new(
         unsafe { &*core::ptr::null() },
@@ -197,6 +203,28 @@ fn main() -> ! {
                         peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(0) });
                     } else {
                         peripherals.TCC2.cc()[1].write(|w| unsafe { w.cc().bits(2_000) });
+                    }
+
+                    // yellow
+                    if buf[0] & 0x4 == 0 {
+                        // remember: we're switching GND for the LEDs, so inverted logic
+                        yellow.set_high().unwrap();
+                    } else {
+                        yellow.set_low().unwrap();
+                    }
+
+                    // green
+                    if buf[0] & 0x8 == 0 {
+                        green.set_high().unwrap();
+                    } else {
+                        green.set_low().unwrap();
+                    }
+
+                    // blue
+                    if buf[0] & 0x10 == 0 {
+                        blue.set_high().unwrap();
+                    } else {
+                        blue.set_low().unwrap();
                     }
                 }
                 _ => (),
