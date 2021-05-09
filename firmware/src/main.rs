@@ -6,18 +6,32 @@ use panic_halt as _;
 use atsamd_hal::gpio::IntoFunction;
 use atsamd_hal::prelude::*;
 use usb_device::prelude::*;
-use usbd_hid::descriptor::generator_prelude::*;
 
-#[gen_hid_descriptor(
-    (collection = APPLICATION, usage_page = 0x01 , usage = 0x06) = {
-        (usage_page = 0x08, usage = 0x01) = {
-            #[packed_bits 1] led = output;
-        }
-    }
-)]
-struct Led {
-    led: u8,
-}
+#[rustfmt::skip]
+static HID_DESCRIPTOR: &[u8] = &[
+    // Usage Page - Generic Desktop Controls
+    0b0000_01_01, 0x01,
+    // Usage - Keyboard
+    0b0000_10_01, 0x06,
+    // Collection - Application
+    0b1010_00_01, 0x01,
+    //     Usage Page - LEDs
+    0b0000_01_01, 0x08,
+    //     Usage - Generic Indicator
+    0b0000_10_01, 0x4b,
+    //     Report Count - 5
+    0b1001_01_01, 5,
+    //     Report Size - 1
+    0b0111_01_01, 1,
+    //     Output (Data, Variable, Absolute)
+    0b1001_00_01, 0b0000_0010,
+    //     Report Count - 3
+    0b1001_01_01, 3,
+    //     Output (Constant, Variable, Absolute)
+    0b1001_00_01, 0b0000_0011,
+    // End Collection
+    0b1100_00_00,
+];
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -140,7 +154,7 @@ fn main() -> ! {
     );
     let usb_allocator = usb_device::bus::UsbBusAllocator::new(usb_bus);
 
-    let mut usb_hid = usbd_hid::hid_class::HIDClass::new(&usb_allocator, Led::desc(), 10);
+    let mut usb_hid = usbd_hid::hid_class::HIDClass::new(&usb_allocator, HID_DESCRIPTOR, 10);
 
     let mut usb_device = UsbDeviceBuilder::new(&usb_allocator, UsbVidPid(0x1337, 0x4209))
         .manufacturer("Matt Mullins")
