@@ -48,46 +48,54 @@ fn main() -> ! {
     let mut peripherals = atsamd_hal::target_device::Peripherals::take().unwrap();
     let core_peripherals = atsamd_hal::target_device::CorePeripherals::take().unwrap();
 
-    // SYSCTRL.OSC8M defaults to a /8 prescaler, but the implementation of this function sets that
-    // prescale factor to /1.
+    // Run the CPU on the most default-est clock available.  The implementation uses DPLL0 to
+    // generate the 120MHz, it seems.
     let mut generic_clock_controller =
-        atsamd_hal::clock::GenericClockController::with_internal_8mhz(
+        atsamd_hal::clock::GenericClockController::with_internal_32kosc(
             peripherals.GCLK,
-            &mut peripherals.PM,
-            &mut peripherals.SYSCTRL,
+            &mut peripherals.MCLK,
+            &mut peripherals.OSC32KCTRL,
+            &mut peripherals.OSCCTRL,
             &mut peripherals.NVMCTRL,
         );
 
-    peripherals.SYSCTRL.xosc.modify(|_r, w| {
+    peripherals.OSCCTRL.xoscctrl[1].modify(|_r, w| {
         w.xtalen().set_bit();
-        w.gain()._3();
+        w.startup().bits(0x6);
+        unsafe {
+            // from table 28-7: External Multipurpose Crystal Oscillator Current Settings
+            w.imult().bits(3);
+            w.iptat().bits(2);
+        }
         w.ondemand().clear_bit();
+        w.xtalen().set_bit();
         w.enable().set_bit();
         w
     });
-    while peripherals.SYSCTRL.pclksr.read().xoscrdy().bit_is_clear() {}
+    while peripherals.OSCCTRL.status.read().xoscrdy1().bit_is_clear() {}
 
-    // Set up FDPLL96M to output 48MHz
-    // That is, 16MHz (XOSC) / 8 => 2MHz (fdpll96m_ref) * 24 => 48MHz
-    peripherals.SYSCTRL.dpllratio.write(|w| unsafe {
-        w.ldr().bits(24 - 1);
+    // Set up DPLL1 to output 96MHz.  We really want 48MHz, but the datasheet says the DPLLs can
+    // only do 96MHz to 200MHz.
+    //
+    // That is, 8MHz (XOSC) / 4 => 2MHz ("CKR") * 48 => 96MHz.
+    peripherals.OSCCTRL.dpll[1].dpllratio.write(|w| unsafe {
+        w.ldr().bits(48 - 1);
         w.ldrfrac().bits(0);
         w
     });
-    peripherals.SYSCTRL.dpllctrlb.write(|w| {
+    peripherals.OSCCTRL.dpll[1].dpllctrlb.write(|w| {
         unsafe {
-            w.div().bits(3); // F_fdpll96m_ref = F_xosc * (1 / (2 * (DIV + 1))) according to datasheet.
-            w.refclk().ref1();
+            w.div().bits(1); // F_div = F_xosc / (2 * (DIV + 1)) according to datasheet.
+            w.refclk().xosc1();
             w
         }
     });
-    peripherals.SYSCTRL.dpllctrla.write(|w| {
+    peripherals.OSCCTRL.dpll[1].dpllctrla.write(|w| {
         w.ondemand().clear_bit();
         w.enable().set_bit();
         w
     });
-    while peripherals
-        .SYSCTRL
+    while peripherals.OSCCTRL.dpll[1]
         .dpllstatus
         .read()
         .clkrdy()
@@ -97,26 +105,20 @@ fn main() -> ! {
     // Arbitrarily choosing Clock Generator 6 to wire 48MHz to the USB peripheral.  USB requires
     // *exactly* 48MHz.
     unsafe {
-        let gclk = &*atsamd21e::GCLK::ptr();
-        gclk.gendiv.write(|w| {
-            w.div().bits(1);
-            w.id().bits(6);
-            w
-        });
-        gclk.genctrl.write(|w| {
+        let gclk = &*atsamd_hal::target_device::GCLK::ptr();
+        gclk.genctrl[6].write(|w| {
+            w.div().bits(2);
             w.runstdby().clear_bit();
             w.divsel().clear_bit();
             w.oe().clear_bit();
             w.idc().clear_bit();
             w.genen().set_bit();
-            w.src().dpll96m();
-            w.id().bits(6);
+            w.src().dpll1();
             w
         });
-        gclk.clkctrl.write(|w| {
-            w.clken().set_bit();
+        gclk.pchctrl[10 /* GCLK_USB */].write(|w| {
+            w.chen().set_bit();
             w.gen().gclk6();
-            w.id().usb();
             w
         });
     }
@@ -133,11 +135,11 @@ fn main() -> ! {
     let mut blue = pins.pa4.into_push_pull_output(&mut pins.port);
     blue.set_high().unwrap();
 
-    let usb_bus = atsamd_hal::samd21::usb::UsbBus::new(
+    let usb_bus = atsamd_hal::usb::UsbBus::new(
         unsafe { &*core::ptr::null() },
-        &mut peripherals.PM,
-        pins.pa24.into_function(&mut pins.port),
-        pins.pa25.into_function(&mut pins.port),
+        &mut peripherals.MCLK,
+        pins.pa24,
+        pins.pa25,
         peripherals.USB,
     );
     let usb_allocator = usb_device::bus::UsbBusAllocator::new(usb_bus);
