@@ -3,8 +3,9 @@
 
 use panic_halt as _;
 
-use atsamd_hal::gpio::IntoFunction;
-use atsamd_hal::prelude::*;
+use atsamd_hal::gpio::v2::Pins;
+use atsamd_hal::hal::digital::v2::OutputPin;
+
 use usb_device::prelude::*;
 
 #[rustfmt::skip]
@@ -123,16 +124,16 @@ fn main() -> ! {
         });
     }
 
-    let mut pins = peripherals.PORT.split();
-    let mut red = pins.pb12.into_push_pull_output(&mut pins.port);
+    let pins = Pins::new(peripherals.PORT);
+    let mut red = pins.pb12.into_push_pull_output();
     red.set_low().unwrap();
-    let mut orange = pins.pb13.into_push_pull_output(&mut pins.port);
+    let mut orange = pins.pb13.into_push_pull_output();
     orange.set_low().unwrap();
-    let mut yellow = pins.pb14.into_push_pull_output(&mut pins.port);
+    let mut yellow = pins.pb14.into_push_pull_output();
     yellow.set_low().unwrap();
-    let mut green = pins.pb15.into_push_pull_output(&mut pins.port);
+    let mut green = pins.pb15.into_push_pull_output();
     green.set_low().unwrap();
-    let mut blue = pins.pa4.into_push_pull_output(&mut pins.port);
+    let mut blue = pins.pa04.into_push_pull_output();
     blue.set_high().unwrap();
 
     let usb_bus = atsamd_hal::usb::UsbBus::new(
