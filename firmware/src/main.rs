@@ -124,14 +124,14 @@ fn main() -> ! {
     }
 
     let mut pins = peripherals.PORT.split();
-    let mut red = pins.pa0.into_push_pull_output(&mut pins.port);
-    red.set_high().unwrap();
-    let mut orange = pins.pa1.into_push_pull_output(&mut pins.port);
-    orange.set_high().unwrap();
-    let mut yellow = pins.pa2.into_push_pull_output(&mut pins.port);
-    yellow.set_high().unwrap();
-    let mut green = pins.pa3.into_push_pull_output(&mut pins.port);
-    green.set_high().unwrap();
+    let mut red = pins.pb12.into_push_pull_output(&mut pins.port);
+    red.set_low().unwrap();
+    let mut orange = pins.pb13.into_push_pull_output(&mut pins.port);
+    orange.set_low().unwrap();
+    let mut yellow = pins.pb14.into_push_pull_output(&mut pins.port);
+    yellow.set_low().unwrap();
+    let mut green = pins.pb15.into_push_pull_output(&mut pins.port);
+    green.set_low().unwrap();
     let mut blue = pins.pa4.into_push_pull_output(&mut pins.port);
     blue.set_high().unwrap();
 
@@ -157,36 +157,35 @@ fn main() -> ! {
             match usb_hid.pull_raw_output(&mut buf) {
                 Ok(1) => {
                     // red
-                    if buf[0] & 0x1 == 0 {
-                        // remember: we're switching GND for the LEDs, so inverted logic
+                    if buf[0] & 0x1 > 0 {
                         red.set_high().unwrap();
                     } else {
                         red.set_low().unwrap();
                     }
 
                     // orange
-                    if buf[0] & 0x2 == 0 {
+                    if buf[0] & 0x2 > 0 {
                         orange.set_high().unwrap();
                     } else {
                         orange.set_low().unwrap();
                     }
 
                     // yellow
-                    if buf[0] & 0x4 == 0 {
+                    if buf[0] & 0x4 > 0 {
                         yellow.set_high().unwrap();
                     } else {
                         yellow.set_low().unwrap();
                     }
 
                     // green
-                    if buf[0] & 0x8 == 0 {
+                    if buf[0] & 0x8 > 0 {
                         green.set_high().unwrap();
                     } else {
                         green.set_low().unwrap();
                     }
 
                     // blue
-                    if buf[0] & 0x10 == 0 {
+                    if buf[0] & 0x10 > 0 {
                         blue.set_high().unwrap();
                     } else {
                         blue.set_low().unwrap();
